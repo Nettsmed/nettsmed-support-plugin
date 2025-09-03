@@ -42,12 +42,14 @@ function simpel_admin_hide_menu() {
         remove_menu_page('complianz'); 
         remove_menu_page('wp-mail-smtp'); 
         remove_menu_page('jet-engine'); 
+        remove_menu_page('snippets'); 
         remove_menu_page('jet-smart-filters'); 
         remove_menu_page('update-core.php');
         remove_menu_page('activity_log_page'); 
         remove_menu_page('loco'); 
         remove_submenu_page('index.php', 'update-core.php');
         remove_submenu_page('themes.php', 'hello-theme-settings');
+        
 
 
     }
