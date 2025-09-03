@@ -35,6 +35,7 @@ function simpel_admin_hide_menu() {
     $current_user = wp_get_current_user();
     if(in_array('simpel_admin', $current_user->roles)){
         remove_menu_page('plugins.php');
+        remove_menu_page('activity-log-page');
         remove_menu_page('tools.php');
         remove_menu_page('jet-dashboard');
         remove_menu_page('options-general.php');
