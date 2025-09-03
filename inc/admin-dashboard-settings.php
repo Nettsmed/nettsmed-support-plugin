@@ -92,21 +92,21 @@ function nettsmed_admin_dashboard_page() {
                 
                 <div class="nettsmed-admin-card">
                     <h3>Security Settings</h3>
-                    <p><strong>2FA for Simple Admins:</strong> 
-                        <?php if ($disable_2fa): ?>
-                            <span class="status-disabled">Disabled</span> - Simple admins can log in without 2FA
-                        <?php else: ?>
-                            <span class="status-enabled">Enabled</span> - Simple admins must use 2FA
-                        <?php endif; ?>
-                    </p>
-                    <p class="description">
-                        <?php if (class_exists('ITSEC_Core')): ?>
-                            Solid Security plugin detected. 2FA bypass is <?php echo $disable_2fa ? 'active' : 'inactive'; ?>.
-                        <?php else: ?>
-                            Solid Security plugin not detected. This setting will take effect when the plugin is installed.
-                        <?php endif; ?>
-                    </p>
-                    <a href="<?php echo admin_url('admin.php?page=admin-dashboard-settings'); ?>" class="button">Configure Security</a>
+                    <?php if (class_exists('ITSEC_Core')): ?>
+                        <p><strong>2FA for Simple Admins:</strong> 
+                            <?php if ($disable_2fa): ?>
+                                <span class="status-disabled">Disabled</span> - Simple admins can log in without 2FA
+                            <?php else: ?>
+                                <span class="status-enabled">Enabled</span> - Simple admins must use 2FA
+                            <?php endif; ?>
+                        </p>
+                        <p class="description">Solid Security plugin detected. 2FA bypass is <?php echo $disable_2fa ? 'active' : 'inactive'; ?>.</p>
+                        <a href="<?php echo admin_url('admin.php?page=admin-dashboard-settings'); ?>" class="button">Configure Security</a>
+                    <?php else: ?>
+                        <p><strong>Solid Security Plugin:</strong> <span class="status-missing">Not Installed</span></p>
+                        <p class="description">Install the Solid Security plugin to enable 2FA bypass controls for Simple Admin users.</p>
+                        <a href="<?php echo admin_url('plugin-install.php?s=solid+security&tab=search&type=term'); ?>" class="button">Install Solid Security</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -211,6 +211,14 @@ function nettsmed_admin_dashboard_page() {
         color: #dc3232;
         font-weight: 600;
     }
+    .status-missing {
+        color: #ffb900;
+        font-weight: 600;
+    }
+    .notice.inline {
+        margin: 5px 0;
+        padding: 8px 12px;
+    }
     </style>
     <?php
 }
@@ -268,15 +276,22 @@ function admin_dashboard_settings_page() {
                         <label for="disable_2fa_simple_admin">Security Settings</label>
                     </th>
                     <td>
-                        <label>
-                            <input type="checkbox" 
-                                   id="disable_2fa_simple_admin" 
-                                   name="disable_2fa_simple_admin" 
-                                   value="1" 
-                                   <?php checked($disable_2fa, 1); ?> />
-                            Disable 2FA for Simple Admin users
-                        </label>
-                        <p class="description">When enabled, Simple Admin users will not be required to use Two-Factor Authentication (2FA) when Solid Security plugin is active. This setting is enabled by default for easier access.</p>
+                        <?php if (class_exists('ITSEC_Core')): ?>
+                            <label>
+                                <input type="checkbox" 
+                                       id="disable_2fa_simple_admin" 
+                                       name="disable_2fa_simple_admin" 
+                                       value="1" 
+                                       <?php checked($disable_2fa, 1); ?> />
+                                Disable 2FA for Simple Admin users
+                            </label>
+                            <p class="description">When enabled, Simple Admin users will not be required to use Two-Factor Authentication (2FA). This setting is enabled by default for easier access.</p>
+                        <?php else: ?>
+                            <div class="notice notice-warning inline">
+                                <p><strong>Solid Security plugin not detected.</strong> This setting will only be available when the Solid Security plugin is installed and active.</p>
+                            </div>
+                            <input type="hidden" name="disable_2fa_simple_admin" value="0" />
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
