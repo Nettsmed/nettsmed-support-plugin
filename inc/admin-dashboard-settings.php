@@ -89,6 +89,41 @@ function nettsmed_admin_dashboard_page() {
                 <?php endif; ?>
             </div>
         </div>
+        
+        <div class="nettsmed-admin-section">
+            <h2>Simple Admin Users</h2>
+            <div class="simple-admin-list">
+                <?php
+                // Get all users with simpel_admin role
+                $simple_admins = get_users(array('role' => 'simpel_admin'));
+                
+                if (!empty($simple_admins)) {
+                    echo '<table class="wp-list-table widefat fixed striped">';
+                    echo '<thead><tr><th>Username</th><th>Display Name</th><th>Email</th><th>Last Login</th><th>Status</th></tr></thead>';
+                    echo '<tbody>';
+                    
+                    foreach ($simple_admins as $user) {
+                        $last_login = get_user_meta($user->ID, 'last_login', true);
+                        $last_login_formatted = $last_login ? date('Y-m-d H:i:s', $last_login) : 'Never';
+                        $is_online = (get_user_meta($user->ID, 'last_activity', true) > (time() - 300)); // 5 minutes
+                        $status = $is_online ? '<span class="status-online">Online</span>' : '<span class="status-offline">Offline</span>';
+                        
+                        echo '<tr>';
+                        echo '<td><strong>' . esc_html($user->user_login) . '</strong></td>';
+                        echo '<td>' . esc_html($user->display_name) . '</td>';
+                        echo '<td>' . esc_html($user->user_email) . '</td>';
+                        echo '<td>' . esc_html($last_login_formatted) . '</td>';
+                        echo '<td>' . $status . '</td>';
+                        echo '</tr>';
+                    }
+                    
+                    echo '</tbody></table>';
+                } else {
+                    echo '<p>No simple admin users found.</p>';
+                }
+                ?>
+            </div>
+        </div>
     </div>
     
     <style>
@@ -117,6 +152,35 @@ function nettsmed_admin_dashboard_page() {
     }
     .nettsmed-admin-card .button {
         margin-top: 10px;
+    }
+    .nettsmed-admin-section {
+        margin-top: 30px;
+        background: #fff;
+        border: 1px solid #ccd0d4;
+        border-radius: 4px;
+        padding: 20px;
+        box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    }
+    .nettsmed-admin-section h2 {
+        margin-top: 0;
+        color: #23282d;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .simple-admin-list table {
+        margin-top: 15px;
+    }
+    .simple-admin-list th {
+        font-weight: 600;
+        background: #f9f9f9;
+    }
+    .status-online {
+        color: #46b450;
+        font-weight: 600;
+    }
+    .status-offline {
+        color: #dc3232;
+        font-weight: 600;
     }
     </style>
     <?php
@@ -283,4 +347,30 @@ function add_embed_page_script() {
     }
 }
 add_action('admin_footer', 'add_embed_page_script');
+
+// Track user login times
+function track_user_login($user_login, $user) {
+    update_user_meta($user->ID, 'last_login', time());
+    update_user_meta($user->ID, 'last_activity', time());
+}
+add_action('wp_login', 'track_user_login', 10, 2);
+
+// Track user activity (heartbeat)
+function track_user_activity() {
+    if (is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        update_user_meta($user_id, 'last_activity', time());
+    }
+}
+add_action('wp_ajax_heartbeat', 'track_user_activity');
+add_action('wp_ajax_nopriv_heartbeat', 'track_user_activity');
+
+// Track admin page visits
+function track_admin_activity() {
+    if (is_admin() && is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        update_user_meta($user_id, 'last_activity', time());
+    }
+}
+add_action('admin_init', 'track_admin_activity');
 ?>
