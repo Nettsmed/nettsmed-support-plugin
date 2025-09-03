@@ -9,17 +9,30 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Add admin menu for dashboard settings (only for administrators)
-function add_admin_dashboard_settings_menu() {
+// Add Nettsmed admin menu (only for administrators)
+function add_nettsmed_admin_menu() {
     $current_user = wp_get_current_user();
     
     // Only show to full administrators, not simple admins
     if (in_array('simpel_admin', $current_user->roles)) {
-        return; // This is a simple admin, don't show the settings
+        return; // This is a simple admin, don't show the menu
     }
     
     if (current_user_can('administrator')) {
-        add_options_page(
+        // Add main Nettsmed admin menu
+        add_menu_page(
+            'Nettsmed Admin',
+            'Nettsmed Admin',
+            'administrator',
+            'nettsmed-admin',
+            'nettsmed_admin_dashboard_page',
+            'dashicons-admin-tools',
+            3 // Position in menu
+        );
+        
+        // Add Dashboard Settings as submenu
+        add_submenu_page(
+            'nettsmed-admin',
             'Dashboard Settings',
             'Dashboard Settings',
             'administrator',
@@ -28,7 +41,7 @@ function add_admin_dashboard_settings_menu() {
         );
     }
 }
-add_action('admin_menu', 'add_admin_dashboard_settings_menu');
+add_action('admin_menu', 'add_nettsmed_admin_menu');
 
 // Register settings
 function register_admin_dashboard_settings() {
@@ -36,6 +49,78 @@ function register_admin_dashboard_settings() {
     register_setting('admin_dashboard_settings', 'admin_dashboard_menu_title');
 }
 add_action('admin_init', 'register_admin_dashboard_settings');
+
+// Main Nettsmed admin dashboard page
+function nettsmed_admin_dashboard_page() {
+    if (!current_user_can('administrator')) {
+        wp_die(__('You do not have sufficient permissions to access this page.'));
+    }
+    
+    $embed_code = get_option('admin_dashboard_embed_code', '');
+    $menu_title = get_option('admin_dashboard_menu_title', '');
+    
+    ?>
+    <div class="wrap">
+        <h1>Nettsmed Admin Dashboard</h1>
+        <p>Welcome to the Nettsmed admin panel. Here you can manage various settings for your WordPress site.</p>
+        
+        <div class="nettsmed-admin-overview">
+            <h2>Quick Overview</h2>
+            <div class="nettsmed-admin-cards">
+                <div class="nettsmed-admin-card">
+                    <h3>Dashboard Settings</h3>
+                    <p>Configure embed content and menu titles for simple admins.</p>
+                    <a href="<?php echo admin_url('admin.php?page=admin-dashboard-settings'); ?>" class="button button-primary">Configure Settings</a>
+                </div>
+                
+                <?php if (!empty($embed_code) && !empty($menu_title)): ?>
+                <div class="nettsmed-admin-card">
+                    <h3>Current Configuration</h3>
+                    <p><strong>Menu Title:</strong> <?php echo esc_html($menu_title); ?></p>
+                    <p><strong>Embed Code:</strong> <?php echo !empty($embed_code) ? 'Configured' : 'Not set'; ?></p>
+                    <p class="description">Simple admins will see a menu item called "<?php echo esc_html($menu_title); ?>" that opens the embed page in a new tab.</p>
+                </div>
+                <?php else: ?>
+                <div class="nettsmed-admin-card">
+                    <h3>Setup Required</h3>
+                    <p>Configure the dashboard settings to enable the embed functionality for simple admins.</p>
+                    <a href="<?php echo admin_url('admin.php?page=admin-dashboard-settings'); ?>" class="button">Setup Now</a>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+    .nettsmed-admin-overview {
+        margin-top: 20px;
+    }
+    .nettsmed-admin-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .nettsmed-admin-card {
+        background: #fff;
+        border: 1px solid #ccd0d4;
+        border-radius: 4px;
+        padding: 20px;
+        box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    }
+    .nettsmed-admin-card h3 {
+        margin-top: 0;
+        color: #23282d;
+    }
+    .nettsmed-admin-card p {
+        margin-bottom: 15px;
+    }
+    .nettsmed-admin-card .button {
+        margin-top: 10px;
+    }
+    </style>
+    <?php
+}
 
 // Settings page content
 function admin_dashboard_settings_page() {
@@ -98,12 +183,12 @@ function admin_dashboard_settings_page() {
     <?php
 }
 
-// Add dynamic menu item for simple admins
-function add_dynamic_menu_for_simple_admins() {
+// Add dynamic menu item for simple admins and administrators
+function add_dynamic_menu_for_users() {
     $current_user = wp_get_current_user();
     
-    // Only add menu for simple admins
-    if (in_array('simpel_admin', $current_user->roles)) {
+    // Add menu for both simple admins and full administrators
+    if (in_array('simpel_admin', $current_user->roles) || current_user_can('administrator')) {
         $menu_title = get_option('admin_dashboard_menu_title', '');
         $embed_code = get_option('admin_dashboard_embed_code', '');
         
@@ -121,14 +206,14 @@ function add_dynamic_menu_for_simple_admins() {
         }
     }
 }
-add_action('admin_menu', 'add_dynamic_menu_for_simple_admins');
+add_action('admin_menu', 'add_dynamic_menu_for_users');
 
 // Display the embed page
 function display_embed_page() {
     $current_user = wp_get_current_user();
     
-    // Check if user is simple admin
-    if (!in_array('simpel_admin', $current_user->roles)) {
+    // Check if user is simple admin or full administrator
+    if (!in_array('simpel_admin', $current_user->roles) && !current_user_can('administrator')) {
         wp_die(__('You do not have sufficient permissions to access this page.'));
     }
     
@@ -179,8 +264,8 @@ function display_embed_page() {
 function add_embed_page_script() {
     $current_user = wp_get_current_user();
     
-    // Only add script for simple admins
-    if (in_array('simpel_admin', $current_user->roles)) {
+    // Add script for both simple admins and full administrators
+    if (in_array('simpel_admin', $current_user->roles) || current_user_can('administrator')) {
         $menu_title = get_option('admin_dashboard_menu_title', '');
         $embed_code = get_option('admin_dashboard_embed_code', '');
         

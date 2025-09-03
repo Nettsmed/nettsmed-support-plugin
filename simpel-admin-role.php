@@ -48,7 +48,7 @@ function simpel_admin_hide_menu() {
         remove_menu_page('loco'); 
         remove_submenu_page('index.php', 'update-core.php');
         remove_submenu_page('themes.php', 'hello-theme-settings');
-        remove_submenu_page('options-general.php', 'admin-dashboard-settings');
+
 
     }
     
