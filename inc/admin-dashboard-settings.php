@@ -47,6 +47,7 @@ add_action('admin_menu', 'add_nettsmed_admin_menu');
 function register_admin_dashboard_settings() {
     register_setting('admin_dashboard_settings', 'admin_dashboard_embed_code');
     register_setting('admin_dashboard_settings', 'admin_dashboard_menu_title');
+    register_setting('admin_dashboard_settings', 'disable_2fa_simple_admin');
 }
 add_action('admin_init', 'register_admin_dashboard_settings');
 
@@ -58,6 +59,7 @@ function nettsmed_admin_dashboard_page() {
     
     $embed_code = get_option('admin_dashboard_embed_code', '');
     $menu_title = get_option('admin_dashboard_menu_title', '');
+    $disable_2fa = get_option('disable_2fa_simple_admin', 1);
     
     ?>
     <div class="wrap">
@@ -87,6 +89,25 @@ function nettsmed_admin_dashboard_page() {
                     <a href="<?php echo admin_url('admin.php?page=admin-dashboard-settings'); ?>" class="button">Setup Now</a>
                 </div>
                 <?php endif; ?>
+                
+                <div class="nettsmed-admin-card">
+                    <h3>Security Settings</h3>
+                    <?php if (class_exists('ITSEC_Core')): ?>
+                        <p><strong>2FA for Simple Admins:</strong> 
+                            <?php if ($disable_2fa): ?>
+                                <span class="status-disabled">Disabled</span> - Simple admins can log in without 2FA
+                            <?php else: ?>
+                                <span class="status-enabled">Enabled</span> - Simple admins must use 2FA
+                            <?php endif; ?>
+                        </p>
+                        <p class="description">Solid Security plugin detected. 2FA bypass is <?php echo $disable_2fa ? 'active' : 'inactive'; ?>.</p>
+                        <a href="<?php echo admin_url('admin.php?page=admin-dashboard-settings'); ?>" class="button">Configure Security</a>
+                    <?php else: ?>
+                        <p><strong>Solid Security Plugin:</strong> <span class="status-missing">Not Installed</span></p>
+                        <p class="description">Install the Solid Security plugin to enable 2FA bypass controls for Simple Admin users.</p>
+                        <a href="<?php echo admin_url('plugin-install.php?s=solid+security&tab=search&type=term'); ?>" class="button">Install Solid Security</a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         
@@ -182,6 +203,22 @@ function nettsmed_admin_dashboard_page() {
         color: #dc3232;
         font-weight: 600;
     }
+    .status-disabled {
+        color: #46b450;
+        font-weight: 600;
+    }
+    .status-enabled {
+        color: #dc3232;
+        font-weight: 600;
+    }
+    .status-missing {
+        color: #ffb900;
+        font-weight: 600;
+    }
+    .notice.inline {
+        margin: 5px 0;
+        padding: 8px 12px;
+    }
     </style>
     <?php
 }
@@ -194,11 +231,12 @@ function admin_dashboard_settings_page() {
     
     $embed_code = get_option('admin_dashboard_embed_code', '');
     $menu_title = get_option('admin_dashboard_menu_title', '');
+    $disable_2fa = get_option('disable_2fa_simple_admin', 1); // Default to enabled
     
     ?>
     <div class="wrap">
         <h1>Dashboard Settings</h1>
-        <p>Configure the embed content and menu title for the admin dashboard.</p>
+        <p>Configure the embed content, menu title, and security settings for the admin dashboard.</p>
         
         <form method="post" action="options.php">
             <?php settings_fields('admin_dashboard_settings'); ?>
@@ -231,6 +269,29 @@ function admin_dashboard_settings_page() {
                                   class="large-text code" 
                                   placeholder="Enter your embed code here (e.g., iframe)"><?php echo esc_textarea($embed_code); ?></textarea>
                         <p class="description">Enter the embed code that will be displayed on the embed page. This will open in a new tab when clicked.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="disable_2fa_simple_admin">Security Settings</label>
+                    </th>
+                    <td>
+                        <?php if (class_exists('ITSEC_Core')): ?>
+                            <label>
+                                <input type="checkbox" 
+                                       id="disable_2fa_simple_admin" 
+                                       name="disable_2fa_simple_admin" 
+                                       value="1" 
+                                       <?php checked($disable_2fa, 1); ?> />
+                                Disable 2FA for Simple Admin users
+                            </label>
+                            <p class="description">When enabled, Simple Admin users will not be required to use Two-Factor Authentication (2FA). This setting is enabled by default for easier access.</p>
+                        <?php else: ?>
+                            <div class="notice notice-warning inline">
+                                <p><strong>Solid Security plugin not detected.</strong> This setting will only be available when the Solid Security plugin is installed and active.</p>
+                            </div>
+                            <input type="hidden" name="disable_2fa_simple_admin" value="0" />
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
@@ -373,4 +434,21 @@ function track_admin_activity() {
     }
 }
 add_action('admin_init', 'track_admin_activity');
+
+// Solid Security 2FA Exception for Simpel Admin
+function ns_disable_2fa_for_simpel_admin($providers, $user) {
+    // Check if the setting is enabled
+    $disable_2fa_setting = get_option('disable_2fa_simple_admin', 1);
+    
+    if ($disable_2fa_setting && $user instanceof WP_User && in_array('simpel_admin', (array)$user->roles, true)) {
+        return []; // no providers => no 2FA
+    }
+    return $providers;
+}
+
+// Only add the filters if Solid Security is active
+if (class_exists('ITSEC_Core')) {
+    add_filter('itsec_two_factor_allowed_providers_for_user', 'ns_disable_2fa_for_simpel_admin', 10, 2);
+    add_filter('itsec_two_factor_available_providers_for_user', 'ns_disable_2fa_for_simpel_admin', 10, 2);
+}
 ?>
