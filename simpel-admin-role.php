@@ -12,7 +12,7 @@ function create_simpel_admin_role() {
     $capabilities_to_remove = [
         'activate_plugins', 'delete_plugins', 'edit_plugins', 'install_plugins', 'update_plugins',
         'switch_themes', 'edit_themes', 'delete_themes', 'install_themes', 'update_themes',
-        'update_core'
+        'update_core', 'manage_options'
     ];
 
     foreach ($capabilities_to_remove as $capability) {
@@ -48,6 +48,7 @@ function simpel_admin_hide_menu() {
         remove_menu_page('loco'); 
         remove_submenu_page('index.php', 'update-core.php');
         remove_submenu_page('themes.php', 'hello-theme-settings');
+
 
     }
     
