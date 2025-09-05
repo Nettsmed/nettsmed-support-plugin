@@ -1,6 +1,10 @@
 # Site-Customizer-by-Fjellestad-Design
 
 # Version control
+# 1.2.3
+ensured editors also had view access to Analytics (plausible)
+## 1.2.2
+Added plausible as 'Analyse' page. 
 ## 1.2.1
 Added security toggle for disabling 2fa for simpel admins
 ## 1.2.0
