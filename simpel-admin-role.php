@@ -59,6 +59,30 @@ function simpel_admin_hide_menu() {
 
 add_action('admin_menu', 'simpel_admin_hide_menu');
 
+// Add Analytics menu for Simpel Admin role
+function add_analytics_menu_for_simpel_admin() {
+    $current_user = wp_get_current_user();
+    
+    if (in_array('simpel_admin', $current_user->roles)) {
+        // Detect language - check if Norwegian locale is active
+        $locale = get_locale();
+        $is_norwegian = (strpos($locale, 'nb') === 0 || strpos($locale, 'nn') === 0 || strpos($locale, 'no') === 0);
+        $menu_title = $is_norwegian ? 'Analyse' : 'Analytics';
+        
+        add_menu_page(
+            $menu_title,
+            $menu_title,
+            'edit_posts', // capability
+            'index.php?page=plausible_analytics_statistics',
+            '',
+            'dashicons-chart-bar',
+            1 // Position in menu (high priority)
+        );
+    }
+}
+add_action('admin_menu', 'add_analytics_menu_for_simpel_admin', 10000);
+
+
 // The following 2 functions removes all notices with php and css
 function simpel_admin_hide_notices() {
     if (!current_user_can('manage_options')) {
@@ -92,7 +116,12 @@ add_action('admin_head', 'simpel_admin_hide_specific_notices');
 function redirect_to_custom_dashboard() {
     global $pagenow;
     
-    if (is_admin() && !current_user_can('administrator') && $pagenow === 'index.php' && !isset($_GET['page'])) {
+    // Allow access to Plausible Analytics statistics page
+    $allowed_pages = array('plausible_analytics_statistics');
+    $current_page = isset($_GET['page']) ? $_GET['page'] : '';
+    
+    if (is_admin() && !current_user_can('administrator') && $pagenow === 'index.php' && 
+        (!isset($_GET['page']) || !in_array($current_page, $allowed_pages))) {
         wp_redirect(admin_url('admin.php?page=brukerveiledning'));
         exit();
     }
@@ -101,5 +130,7 @@ function redirect_to_custom_dashboard() {
 
 add_action('admin_init', 'redirect_to_custom_dashboard');
 
+// Ensure the simpel_admin role is created when the plugin loads
+add_action('init', 'create_simpel_admin_role');
 
 ?>
