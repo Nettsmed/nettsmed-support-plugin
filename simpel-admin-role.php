@@ -59,11 +59,12 @@ function simpel_admin_hide_menu() {
 
 add_action('admin_menu', 'simpel_admin_hide_menu');
 
-// Add Analytics menu for Simpel Admin role
+// Add Analytics menu for Simpel Admin role and Editors
 function add_analytics_menu_for_simpel_admin() {
     $current_user = wp_get_current_user();
     
-    if (in_array('simpel_admin', $current_user->roles)) {
+    // Allow access for simpel_admin role OR editor role
+    if (in_array('simpel_admin', $current_user->roles) || in_array('editor', $current_user->roles)) {
         // Detect language - check if Norwegian locale is active
         $locale = get_locale();
         $is_norwegian = (strpos($locale, 'nb') === 0 || strpos($locale, 'nn') === 0 || strpos($locale, 'no') === 0);
@@ -120,7 +121,8 @@ function redirect_to_custom_dashboard() {
     $allowed_pages = array('plausible_analytics_statistics');
     $current_page = isset($_GET['page']) ? $_GET['page'] : '';
     
-    if (is_admin() && !current_user_can('administrator') && $pagenow === 'index.php' && 
+    // Don't redirect administrators or editors (editors have edit_others_posts capability)
+    if (is_admin() && !current_user_can('administrator') && !current_user_can('edit_others_posts') && $pagenow === 'index.php' && 
         (!isset($_GET['page']) || !in_array($current_page, $allowed_pages))) {
         wp_redirect(admin_url('admin.php?page=brukerveiledning'));
         exit();
