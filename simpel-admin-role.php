@@ -61,6 +61,16 @@ add_action('admin_menu', 'simpel_admin_hide_menu');
 
 // Add Analytics menu for Simpel Admin role and Editors
 function add_analytics_menu_for_simpel_admin() {
+    // Include plugin functions if not already loaded
+    if (!function_exists('is_plugin_active')) {
+        include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    }
+    
+    // Check if Plausible Analytics plugin is active
+    if (!is_plugin_active('plausible-analytics/plausible-analytics.php')) {
+        return; // Exit if Plausible plugin is not active
+    }
+    
     $current_user = wp_get_current_user();
     
     // Allow access for simpel_admin role OR editor role
@@ -117,8 +127,17 @@ add_action('admin_head', 'simpel_admin_hide_specific_notices');
 function redirect_to_custom_dashboard() {
     global $pagenow;
     
-    // Allow access to Plausible Analytics statistics page
-    $allowed_pages = array('plausible_analytics_statistics');
+    // Include plugin functions if not already loaded
+    if (!function_exists('is_plugin_active')) {
+        include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    }
+    
+    // Only allow access to Plausible Analytics statistics page if the plugin is active
+    $allowed_pages = array();
+    if (is_plugin_active('plausible-analytics/plausible-analytics.php')) {
+        $allowed_pages = array('plausible_analytics_statistics');
+    }
+    
     $current_page = isset($_GET['page']) ? $_GET['page'] : '';
     
     // Don't redirect administrators or editors (editors have edit_others_posts capability)
