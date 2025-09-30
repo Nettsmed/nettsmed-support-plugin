@@ -1,6 +1,9 @@
 # Site-Customizer-by-Fjellestad-Design
 
 # Version control
+## 1.2.5
+Extended 2FA bypass functionality to include Editor, Author and Contributor users alongside Simple Admin users
+
 ## 1.2.4
 ensured analytic field in menu was not accessible when plausible is not active as plugin. 
 
