@@ -3,6 +3,12 @@
     "description": "Site customization plugin for Nettsmed customers",
     "type": "wordpress-plugin",
     "require": {
+        "php": ">=8.0",
         "sentry/sentry": "^4.21"
+    },
+    "config": {
+        "platform": {
+            "php": "8.0.0"
+        }
     }
 }
