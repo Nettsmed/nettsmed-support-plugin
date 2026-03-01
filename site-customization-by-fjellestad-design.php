@@ -2,11 +2,16 @@
 /**
 * Plugin Name: Site Customization by Nettsmed
 * Plugin URI: https://nettsmed.no
-* Description: Site customization plugin for Nettsmed customers. 
- * Version: 1.2.5
+* Description: Site customization plugin for Nettsmed customers.
+ * Version: 1.3.0
 * Author: Sindre Fjellestad
 * Author URI: https://github.com/Sinfjell
 */
+
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/inc/class-nettsmed-sentry.php';
+
+add_action( 'plugins_loaded', [ 'NettsmedSentry', 'init' ], 1 );
 
 require 'kernl-update-checker/kernl-update-checker.php';
 $MyUpdateChecker = Puc_v4_Factory::buildUpdateChecker(

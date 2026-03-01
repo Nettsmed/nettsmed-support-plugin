@@ -1,0 +1,8 @@
+{
+    "name": "nettsmed/support-plugin",
+    "description": "Site customization plugin for Nettsmed customers",
+    "type": "wordpress-plugin",
+    "require": {
+        "sentry/sentry": "^4.21"
+    }
+}
