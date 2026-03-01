@@ -2,21 +2,17 @@
 
 class NettsmedSentry {
 
-	private const DSN_CONSTANT = 'NETTSMED_SUPPORT_SENTRY_DSN';
+	private const DSN = 'https://c9255d6f2a9a6741ed0e264cc0d5fd3e@o4508484236607488.ingest.de.sentry.io/4510971168620624';
 	private const PLUGIN_DIR = 'nettsmed-support-plugin';
 	private const VERSION = '1.3.0';
 
 	public static function init(): void {
-		if ( ! defined( self::DSN_CONSTANT ) || empty( constant( self::DSN_CONSTANT ) ) ) {
-			return;
-		}
-
 		if ( ! class_exists( '\Sentry\SentrySdk' ) ) {
 			return;
 		}
 
 		\Sentry\init( [
-			'dsn'         => constant( self::DSN_CONSTANT ),
+			'dsn'         => self::DSN,
 			'environment' => wp_parse_url( home_url(), PHP_URL_HOST ),
 			'release'     => self::VERSION,
 			'before_send' => [ self::class, 'filter_event' ],

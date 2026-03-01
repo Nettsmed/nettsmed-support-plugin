@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Sentry error reporting integration for plugin-scoped error monitoring
 
+### Changed
+
+- Hardcode Sentry DSN in plugin — no longer requires wp-config.php constant
+
 ## [1.2.5]
 
 ### Changed
