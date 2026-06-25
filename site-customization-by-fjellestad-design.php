@@ -3,7 +3,7 @@
 * Plugin Name: Site Customization by Nettsmed
 * Plugin URI: https://nettsmed.no
 * Description: Site customization plugin for Nettsmed customers.
- * Version: 1.3.1
+ * Version: 1.4.0
 * Author: Sindre Fjellestad
 * Author URI: https://github.com/Sinfjell
 */
@@ -25,6 +25,7 @@ require plugin_dir_path(__FILE__) . 'fjellestad-support-backend-widget.php';
 require plugin_dir_path(__FILE__) . 'remove-dashboard-widgets.php';
 require plugin_dir_path(__FILE__) . 'simpel-admin-role.php';
 require plugin_dir_path(__FILE__) . 'inc/admin-dashboard-settings.php';
+require plugin_dir_path(__FILE__) . 'inc/ai-help-drawer.php';
 
 register_activation_hook( __FILE__, 'create_simpel_admin_role' );
 
