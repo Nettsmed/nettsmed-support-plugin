@@ -110,13 +110,19 @@ function nettsmed_help_enqueue_drawer() {
 	// Min side section; we map it to the minside-SSO launch URL (minted server-
 	// side, nonce included) and open it. Origin-validated against the iframe.
 	if ( $minside ) {
+		// launch_url() is esc_html'd (built for an href, so its ampersands are
+		// &amp;). These URLs go into JS window.open() — a non-HTML context where
+		// &amp; would NOT be decoded, breaking the _wpnonce param — so decode them.
+		$launch = static function ( $next ) use ( $ns ) {
+			return html_entity_decode( (string) call_user_func( $ns . 'launch_url', $next ), ENT_QUOTES );
+		};
 		$cfg = array(
 			'origin' => untrailingslashit( NETTSMED_HELP_BASE ),
 			'urls'   => array(
-				''         => call_user_func( $ns . 'launch_url', '' ),
-				'/drift'   => call_user_func( $ns . 'launch_url', '/drift' ),
-				'/faktura' => call_user_func( $ns . 'launch_url', '/faktura' ),
-				'/support' => call_user_func( $ns . 'launch_url', '/support' ),
+				''         => $launch( '' ),
+				'/drift'   => $launch( '/drift' ),
+				'/faktura' => $launch( '/faktura' ),
+				'/support' => $launch( '/support' ),
 			),
 		);
 		$inline = 'window.__noraMinside=' . wp_json_encode( $cfg ) . ';'
