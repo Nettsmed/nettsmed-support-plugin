@@ -64,6 +64,18 @@ function nettsmed_help_enqueue_drawer() {
 	$screen_id = $screen ? (string) $screen->id : '';
 	$stack     = nettsmed_help_detect_stack();
 
+	// Min side integration — only when the minside-SSO bridge plugin is present
+	// and configured on this site. The drawer then shows a Min side section in
+	// its top bar; clicking a link asks this parent page (via postMessage) to
+	// launch minside over SSO, so no token crosses the iframe.
+	$ns      = 'Nettsmed\\MinsideSSO\\';
+	$minside = function_exists( $ns . 'launch_url' )
+		&& function_exists( $ns . 'is_configured' )
+		&& call_user_func( $ns . 'is_configured' );
+	$email   = ( $minside && function_exists( $ns . 'support_email' ) )
+		? (string) call_user_func( $ns . 'support_email' )
+		: '';
+
 	$src = trailingslashit( NETTSMED_HELP_BASE ) . 'widget.js';
 
 	// Version null → no ?ver= query; the widget loader pins itself.
@@ -72,7 +84,7 @@ function nettsmed_help_enqueue_drawer() {
 	// The widget.js loader is data-* driven; inject the attributes onto its tag.
 	add_filter(
 		'script_loader_tag',
-		function ( $tag, $handle ) use ( $screen_id, $stack ) {
+		function ( $tag, $handle ) use ( $screen_id, $stack, $minside, $email ) {
 			if ( 'nettsmed-help-widget' !== $handle ) {
 				return $tag;
 			}
@@ -85,10 +97,34 @@ function nettsmed_help_enqueue_drawer() {
 				esc_attr( $screen_id ),
 				esc_attr( $stack )
 			);
+			if ( $minside ) {
+				$attrs .= sprintf( ' data-minside="1" data-email="%s"', esc_attr( $email ) );
+			}
 			return str_replace( ' src=', $attrs . ' src=', $tag );
 		},
 		10,
 		2
 	);
+
+	// Parent-side bridge: the drawer (hjelp.nettsmed.no iframe) asks us to open a
+	// Min side section; we map it to the minside-SSO launch URL (minted server-
+	// side, nonce included) and open it. Origin-validated against the iframe.
+	if ( $minside ) {
+		$cfg = array(
+			'origin' => untrailingslashit( NETTSMED_HELP_BASE ),
+			'urls'   => array(
+				''         => call_user_func( $ns . 'launch_url', '' ),
+				'/drift'   => call_user_func( $ns . 'launch_url', '/drift' ),
+				'/faktura' => call_user_func( $ns . 'launch_url', '/faktura' ),
+				'/support' => call_user_func( $ns . 'launch_url', '/support' ),
+			),
+		);
+		$inline = 'window.__noraMinside=' . wp_json_encode( $cfg ) . ';'
+			. '(function(){var C=window.__noraMinside;if(!C)return;'
+			. 'window.addEventListener("message",function(e){if(e.origin!==C.origin)return;'
+			. 'var d=e.data;if(!d||d.type!=="nettsmed-open-minside")return;'
+			. 'var u=C.urls[d.next||""];if(u){window.open(u,"_blank","noopener");}});})();';
+		wp_add_inline_script( 'nettsmed-help-widget', $inline, 'after' );
+	}
 }
 add_action( 'admin_enqueue_scripts', 'nettsmed_help_enqueue_drawer' );
