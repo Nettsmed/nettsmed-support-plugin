@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0]
+
+### Added
+
+- Min side integration in the Nora drawer. When the minside-SSO bridge plugin is
+  present and configured, the drawer shows a «Min side»-section in its top bar
+  (Åpne Min side + Trafikk & drift / Fakturaer / Support-saker + Kontakt oss).
+  Clicking a link postMessages this parent page, which opens the matching
+  minside-SSO launch URL (token minted server-side; origin-validated against the
+  hjelp.nettsmed.no iframe). This replaces the separate floating «Åpne Min side»
+  launcher so wp-admin has a single widget — Nora.
+
+## [1.4.0]
+
+### Added
+
+- Nora — context-aware AI help drawer in wp-admin. Enqueues the shared Nettsmed
+  chat widget from hjelp.nettsmed.no across admin pages, passing the current
+  screen id and detected stack (WooCommerce / Elementor / Gutenberg / WordPress)
+  so the drawer surfaces screen-aware suggestions and weights its answers. Help
+  content is public, so no auth/token crosses the iframe. New `inc/ai-help-drawer.php`;
+  help center base overridable via the `NETTSMED_HELP_BASE` constant.
+
 ## [1.3.1]
 
 ### Fixed
