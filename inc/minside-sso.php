@@ -187,18 +187,22 @@ function mint_token( string $state = '' ) {
 // ── URL-hjelpere ─────────────────────────────────────────────────────────────
 
 /**
- * Bygg URL til admin-post-handleren som minter token og redirecter.
- * Beskyttet med nonce. Peker på nonce-beskyttet nAdmin-post (ikke SP-initiert flow).
+ * Bygg Min side-launch-URL. Rutes gjennom minside sin SP-initierte /sso/start, som
+ * setter CSRF-state (når V2 er på) eller bouncer direkte til WP-mint (legacy). Knappen
+ * treffer dermed samme state-beskytta flyt som /login og virker både med og uten V2.
+ * (Den gamle nonce-beskytta admin-post-handleren beholdes for bakoverkompatibilitet,
+ * men brukes ikke lenger herfra — SP-flytens vern er minside-state + cap-sjekk.)
  *
  * @param string $next Same-site-sti portalen skal lande på (f.eks. '/faktura').
  */
 function launch_url( string $next = '' ): string {
-	$url  = add_query_arg( 'action', ADMIN_POST_ACTION, admin_url( 'admin-post.php' ) );
+	$host = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+	$args = array( 'domain' => $host );
 	$next = sanitize_next( $next );
 	if ( '' !== $next ) {
-		$url = add_query_arg( 'next', $next, $url );
+		$args['return'] = $next;
 	}
-	return wp_nonce_url( $url, NONCE_ACTION );
+	return add_query_arg( $args, minside_url() . '/sso/start' );
 }
 
 /**

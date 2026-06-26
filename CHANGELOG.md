@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-06-26
+
+### Changed
+
+- Min side launch (`launch_url`) now routes through minside's SP-initiated
+  `/sso/start?domain=&return=` instead of the local nonce-protected admin-post
+  mint. The "Min side" button now traverses the same CSRF-state-protected flow as
+  the `/login` path, so it keeps working when minside enforces `SSO_V2_ENABLED`
+  (the old `state=''` admin-post mint would be rejected under V2). The admin-post
+  handler is retained for backward compatibility but no longer used by the button.
+
 ## [1.7.0] - 2026-06-26
 
 ### Removed
