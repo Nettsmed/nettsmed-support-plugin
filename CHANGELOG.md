@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-06-26
+
 ### Added
 
 - Min side SSO (inc/minside-sso.php): hardened JWT minting — aud claim set to

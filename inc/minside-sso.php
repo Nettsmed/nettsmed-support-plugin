@@ -211,14 +211,19 @@ function sanitize_next( $value ): string {
 	if ( '' === $v ) {
 		return '';
 	}
+	// Strip forbudte tegn FØR sikkerhetssjekker slik at input som «/ /evil.com»
+	// ikke overlever stripping som en protokoll-relativ sti («//evil.com»).
+	$v = (string) preg_replace( '#[^A-Za-z0-9/_\-.?=&%]#', '', $v );
+	if ( '' === $v ) {
+		return '';
+	}
 	if ( 0 !== strpos( $v, '/' ) || 0 === strpos( $v, '//' ) ) {
 		return '';
 	}
 	if ( false !== strpos( $v, '://' ) || false !== strpos( $v, "\\" ) ) {
 		return '';
 	}
-	// Behold kun trygge sti-/query-tegn.
-	return (string) preg_replace( '#[^A-Za-z0-9/_\-.?=&%]#', '', $v );
+	return $v;
 }
 
 // ── Emit SSO POST (no-store, no-cache) ─────────────────────────────────────
@@ -295,7 +300,11 @@ function add_admin_bar_button( \WP_Admin_Bar $bar ): void {
 		)
 	);
 }
-add_action( 'admin_bar_menu', __NAMESPACE__ . '\\add_admin_bar_button', 100 );
+// Admin-bar button og admin-meny registreres kun når nøkkelkonstanten er definert,
+// slik at plugin er helt inert på sites uten MINSIDE_SSO_PRIVATE_KEY.
+if ( defined( 'MINSIDE_SSO_PRIVATE_KEY' ) && '' !== (string) \MINSIDE_SSO_PRIVATE_KEY ) {
+	add_action( 'admin_bar_menu', __NAMESPACE__ . '\\add_admin_bar_button', 100 );
+}
 
 /**
  * Toppnivå «Nettsmed»-seksjon i wp-admin sidebaren.
@@ -319,7 +328,9 @@ function register_admin_menu(): void {
 		__NAMESPACE__ . '\\render_landing_page'
 	);
 }
-add_action( 'admin_menu', __NAMESPACE__ . '\\register_admin_menu' );
+if ( defined( 'MINSIDE_SSO_PRIVATE_KEY' ) && '' !== (string) \MINSIDE_SSO_PRIVATE_KEY ) {
+	add_action( 'admin_menu', __NAMESPACE__ . '\\register_admin_menu' );
+}
 
 // ── Landingsside ─────────────────────────────────────────────────────────────
 
@@ -482,7 +493,9 @@ function add_settings_menu(): void {
 	);
 }
 // Prioritet 11 så parent-menyen (prioritet 10) er registrert først.
-add_action( 'admin_menu', __NAMESPACE__ . '\\add_settings_menu', 11 );
+if ( defined( 'MINSIDE_SSO_PRIVATE_KEY' ) && '' !== (string) \MINSIDE_SSO_PRIVATE_KEY ) {
+	add_action( 'admin_menu', __NAMESPACE__ . '\\add_settings_menu', 11 );
+}
 
 function render_settings_page(): void {
 	if ( ! current_user_can( REQUIRED_CAPABILITY ) ) {
