@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Min side SSO (inc/minside-sso.php): hardened JWT minting — aud claim set to
+  `minside.nettsmed.no`, exp=iat+90s, jti=bin2hex(random_bytes(16)) CSPRNG,
+  state claim echoes SP-initiated state for CSRF protection.
+- SP-initiated flow: `?minside_sso=start&state=X&return=/path` handler reads and
+  forwards state inside the assertion; preserves state+return on WP-login bounce.
+- emit_sso_post: Cache-Control no-store/no-cache/private + nocache_headers() +
+  DONOTCACHEPAGE — prevents page caches from serving the SSO form.
+- Fail-closed key loading: MINSIDE_SSO_PRIVATE_KEY must be defined as a
+  wp-config.php constant; no wp_option fallback. If absent, admin-notice is shown
+  and Sentry is notified on attempted mint.
+- MINSIDE_SSO_AUTOBOUNCE constant defaulting to false (auto-bounce disabled).
+
+### Removed
+
+- Private key wp_option fallback (minside_sso_private_key option) — constant-only
+  going forward. Existing option values in the DB are ignored and can be deleted.
+- Settings-page private key textarea — replaced by constant-status indicator.
+
 ## [1.5.0]
 
 ### Added
