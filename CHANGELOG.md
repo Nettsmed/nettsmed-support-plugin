@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-06-26
+
+### Removed
+
+- `fjellestad-support-backend-widget.php` — BetterDocs cross-domain chat widget
+  (hardcoded nettsmed.no docs; superseded by Nora).
+- `custom-dashboard.php` + `assets/css/my-custom-dashboard.css` +
+  `assets/html/my-custom-dashboard-content.html` — "Brukerveiledning" wp-admin
+  menu page with static HTML content (superseded by Nora).
+- `add_dynamic_menu_for_users()`, `display_embed_page()`, `add_embed_page_script()`
+  from `inc/admin-dashboard-settings.php` — configurable embed-code widget that
+  exposed arbitrary iframe content via wp-options (superseded by Nora).
+- `admin_dashboard_embed_code` and `admin_dashboard_menu_title` settings entries
+  and their form fields from the Dashboard Settings page.
+
+### Fixed
+
+- `redirect_to_custom_dashboard()` in `simpel-admin-role.php` now redirects
+  non-admin users to `index.php` instead of the removed `brukerveiledning` page.
+
 ## [1.6.0] - 2026-06-26
 
 ### Added

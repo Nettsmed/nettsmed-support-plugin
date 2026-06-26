@@ -143,7 +143,7 @@ function redirect_to_custom_dashboard() {
     // Don't redirect administrators or editors (editors have edit_others_posts capability)
     if (is_admin() && !current_user_can('administrator') && !current_user_can('edit_others_posts') && $pagenow === 'index.php' && 
         (!isset($_GET['page']) || !in_array($current_page, $allowed_pages))) {
-        wp_redirect(admin_url('admin.php?page=brukerveiledning'));
+        wp_redirect(admin_url('index.php'));
         exit();
     }
 }
