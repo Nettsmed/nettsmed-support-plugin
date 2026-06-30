@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-30
+
 ### Removed
 
 - Floating launcher (the branded blue help/«Kontakt oss» bubble,
