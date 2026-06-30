@@ -278,13 +278,6 @@ function menu_icon(): string {
 }
 
 /**
- * Support-e-post for «Kontakt oss» i launcheren.
- */
-function support_email(): string {
-	return (string) apply_filters( 'minside_support_email', 'support@nettsmed.no' );
-}
-
-/**
  * Admin-bar-node: «Åpne Min side».
  */
 function add_admin_bar_button( \WP_Admin_Bar $bar ): void {
@@ -553,79 +546,12 @@ function render_settings_page(): void {
 	echo '</div>';
 }
 
-// ── Flytende launcher (frontend-hjelpelager) ─────────────────────────────────
-
-/**
- * Flytende launcher nede til høyre — kun på frontend for innloggede admins.
- * I wp-admin bor Min side inne i Nora-skuffen (ai-help-drawer.php).
+/*
+ * Floating launcher removed (TSK-19103). The branded blue help/«Kontakt oss»
+ * bubble (#minside-launcher, wp_footer) is gone — frontend help and contact
+ * are now consolidated into the Nora assistant. In wp-admin, Min side lives in
+ * the Nora help drawer (ai-help-drawer.php). The admin-bar button, the menu
+ * page and the SSO mint are unchanged. The launcher-only helpers
+ * (support_email(), minside_accent_color / minside_support_email filters)
+ * were dropped with it; launch_url() stays for the admin paths.
  */
-function render_launcher(): void {
-	static $printed = false;
-	if ( $printed ) {
-		return;
-	}
-	if ( ! is_user_logged_in() || ! current_user_can( REQUIRED_CAPABILITY ) || ! is_configured() ) {
-		return;
-	}
-	$printed = true;
-
-	$accent = sanitize_hex_color( (string) apply_filters( 'minside_accent_color', '#2271b1' ) );
-	if ( null === $accent || '' === $accent ) {
-		$accent = '#2271b1';
-	}
-
-	$rows = array(
-		array( launch_url( '/drift' ), __( 'Trafikk & drift', 'minside-sso' ), '_blank' ),
-		array( launch_url( '/faktura' ), __( 'Fakturaer', 'minside-sso' ), '_blank' ),
-		array( launch_url( '/support' ), __( 'Support-saker', 'minside-sso' ), '_blank' ),
-		array( 'mailto:' . sanitize_email( support_email() ), __( 'Kontakt oss', 'minside-sso' ), '_self' ),
-	);
-
-	?>
-	<div id="minside-launcher" style="--ns-accent:<?php echo esc_attr( $accent ); ?>">
-		<div class="ns-panel" role="dialog" aria-label="<?php esc_attr_e( 'Nettsmed – hjelp og Min side', 'minside-sso' ); ?>" hidden>
-			<div class="ns-head">
-				<strong><?php esc_html_e( 'Hei 👋 Trenger du hjelp?', 'minside-sso' ); ?></strong>
-				<span><?php echo esc_html( wp_parse_url( home_url(), PHP_URL_HOST ) ); ?> · <?php esc_html_e( 'Nettsmed-kunde', 'minside-sso' ); ?></span>
-			</div>
-			<div class="ns-body">
-				<a class="ns-primary" href="<?php echo esc_url( launch_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Åpne Min side', 'minside-sso' ); ?> →</a>
-				<?php foreach ( $rows as $row ) : ?>
-					<a class="ns-row" href="<?php echo esc_url( $row[0] ); ?>"<?php echo '_blank' === $row[2] ? ' target="_blank" rel="noopener"' : ''; ?>>
-						<span class="ns-dot"></span><?php echo esc_html( $row[1] ); ?>
-					</a>
-				<?php endforeach; ?>
-			</div>
-		</div>
-		<button type="button" class="ns-bubble" aria-expanded="false" aria-label="<?php esc_attr_e( 'Åpne Nettsmed-hjelp', 'minside-sso' ); ?>">
-			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 4h16v12H7l-3 3V4z" fill="#fff"/></svg>
-		</button>
-	</div>
-	<style>
-		#minside-launcher{position:fixed;right:22px;bottom:22px;z-index:99990;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-		#minside-launcher .ns-bubble{width:54px;height:54px;border:0;border-radius:50%;background:var(--ns-accent);box-shadow:0 8px 24px rgba(0,0,0,.28);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:auto;transition:transform .15s}
-		#minside-launcher .ns-bubble:hover{transform:scale(1.06)}
-		#minside-launcher .ns-panel{position:absolute;right:0;bottom:66px;width:300px;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.3);overflow:hidden}
-		#minside-launcher .ns-head{background:var(--ns-accent);color:#fff;padding:16px}
-		#minside-launcher .ns-head strong{font-size:15px;display:block}
-		#minside-launcher .ns-head span{font-size:12px;opacity:.85;display:block;margin-top:2px}
-		#minside-launcher .ns-body{padding:12px}
-		#minside-launcher .ns-primary{display:block;background:var(--ns-accent);color:#fff;text-decoration:none;text-align:center;padding:11px;border-radius:9px;font-weight:700;font-size:14px;margin-bottom:6px}
-		#minside-launcher .ns-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;color:#1d2327;text-decoration:none;font-size:13px}
-		#minside-launcher .ns-row:hover{background:#f0f0f1}
-		#minside-launcher .ns-dot{width:8px;height:8px;border-radius:50%;background:var(--ns-accent);flex:none}
-	</style>
-	<script>
-	(function(){
-		var root=document.getElementById('minside-launcher');
-		if(!root)return;
-		var btn=root.querySelector('.ns-bubble'),panel=root.querySelector('.ns-panel');
-		function set(open){panel.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false');}
-		btn.addEventListener('click',function(e){e.stopPropagation();set(panel.hidden);});
-		document.addEventListener('click',function(e){if(!root.contains(e.target))set(false);});
-		document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
-	})();
-	</script>
-	<?php
-}
-add_action( 'wp_footer', __NAMESPACE__ . '\\render_launcher' );
