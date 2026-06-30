@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Removed
+
+- Floating launcher (the branded blue help/«Kontakt oss» bubble,
+  `#minside-launcher` on `wp_footer`) from `inc/minside-sso.php`. Frontend help
+  and contact are now consolidated into the Nora assistant; in wp-admin, Min
+  side lives in the Nora help drawer. (TSK-19103)
+- Launcher-only helper `support_email()` and the `minside_accent_color` /
+  `minside_support_email` filters (now unused).
+
+### Unchanged
+
+- SSO mint, SP-initiated flow, sidebar springboard, admin-bar shortcut and
+  `launch_url()` are untouched.
+
 ## [1.7.1] - 2026-06-26
 
 ### Changed
