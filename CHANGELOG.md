@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-07-01
+
+### Changed
+
+- SSO mint now sources its JWT contract values (`iss`, `aud`, TTL) from a
+  vendored, auto-generated `inc/contracts.generated.php` instead of hardcoded
+  constants. This file is the shared single source of truth with minside's
+  verifier (`@nettsmed/contracts` in the `nettsmed-kundestotte` monorepo),
+  eliminating cross-repo drift. Emitted token values are byte-for-byte
+  identical to 1.8.0 — no runtime behavior change. Regenerate with
+  `pnpm gen:php` in the monorepo and re-copy the file on any contract change.
+
 ## [1.8.0] - 2026-06-30
 
 ### Removed
