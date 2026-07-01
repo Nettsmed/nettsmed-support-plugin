@@ -17,12 +17,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Cross-language SSO contract (JWT iss/aud/TTL) — single source of truth shared
+// with minside's verifier via @nettsmed/contracts. Vendored + auto-generated:
+// regenerate with `pnpm gen:php` in the minside-nettsmed monorepo, then re-copy
+// contracts.generated.php here and re-commit. See inc/contracts.generated.php.
+require_once __DIR__ . '/contracts.generated.php';
+
 // ── Konstanter ─────────────────────────────────────────────────────────────
 
 const MINSIDE_URL_DEFAULT = 'https://minside.nettsmed.no';
-const SSO_ISSUER          = 'nettsmed-support-plugin';
-const SSO_AUD             = 'minside.nettsmed.no';
-const SSO_TTL_SECONDS     = 90;   // exp = iat + 90 s (ned fra 600)
+// JWT contract values are sourced from contracts.generated.php (do not hardcode).
+const SSO_ISSUER          = \NETTSMED_SSO_ISS;   // 'nettsmed-support-plugin'
+const SSO_AUD             = \NETTSMED_SSO_AUD;   // 'minside.nettsmed.no'
+const SSO_TTL_SECONDS     = \NETTSMED_SSO_TTL;   // exp = iat + 90 s
 const OPTION_SITE_KEY     = 'minside_sso_site_key';
 const REQUIRED_CAPABILITY = 'manage_options';
 const ADMIN_POST_ACTION   = 'minside_sso_launch';
