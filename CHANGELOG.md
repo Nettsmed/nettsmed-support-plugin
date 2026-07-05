@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-07-05
+
 ### Added
 
 - Short-lived RS256 token minting for the Nora widget chat's AI tools
@@ -21,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   from the drawer iframe with a freshly minted `nettsmed-wp-token`, validating
   both the message origin and that the sender is the drawer iframe itself.
   (TSK-19168)
+
+### Fixed
+
+- `kernl.version` and the Sentry release constant (`NettsmedSentry::VERSION`)
+  had drifted from the plugin header since 1.3.x, so Kernl's version marker
+  and Sentry error-event tagging were both stale for several releases. Synced
+  both to 1.9.0; they now match the plugin header. (TSK-19107)
 
 ## [1.8.1] - 2026-07-01
 

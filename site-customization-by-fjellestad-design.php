@@ -3,7 +3,7 @@
 * Plugin Name: Site Customization by Nettsmed
 * Plugin URI: https://nettsmed.no
 * Description: Site customization plugin for Nettsmed customers.
- * Version: 1.8.1
+ * Version: 1.9.0
 * Author: Sindre Fjellestad
 * Author URI: https://github.com/Sinfjell
 */
