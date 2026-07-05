@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Short-lived RS256 token minting for the Nora widget chat's AI tools
+  (`inc/ai-tools-token.php`), so the cross-site `hjelp.nettsmed.no` iframe can
+  prove which site it's running on without any cookie crossing the boundary.
+  New admin-ajax action `nettsmed_ai_token` (logged-in wp-admin users only,
+  nonce-protected) mints a 120s single-use JWT (`iss`/`aud`/`site_key`/`iat`/
+  `exp`/`jti`, no user identity) reusing `minside-sso.php`'s existing private
+  key and site_key — same fail-closed behavior when `MINSIDE_SSO_PRIVATE_KEY`
+  is absent (endpoint answers 503, drawer stays KB-only). A new postMessage
+  bridge enqueued alongside the help widget answers `nettsmed-wp-token-request`
+  from the drawer iframe with a freshly minted `nettsmed-wp-token`, validating
+  both the message origin and that the sender is the drawer iframe itself.
+  (TSK-19168)
+
 ## [1.8.1] - 2026-07-01
 
 ### Changed
