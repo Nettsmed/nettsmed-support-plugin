@@ -71,6 +71,12 @@ function mint_token() {
 		'alg' => 'RS256',
 		'typ' => 'JWT',
 	);
+
+	// SECURITY: NEVER add a `sub` claim to this token. minside's legacy SSO
+	// path (V2=off) validates by required claims without an audience check —
+	// adding `sub` would make wp-ai-tools tokens acceptable there as login
+	// tokens. If attribution of tool calls to a WP user is ever needed, use a
+	// differently-named claim (e.g. `wp_user`), never `sub`.
 	$payload = array(
 		'iss'      => defined( 'NETTSMED_SSO_ISS' ) ? \NETTSMED_SSO_ISS : 'nettsmed-support-plugin',
 		'aud'      => AI_TOOLS_AUD,
