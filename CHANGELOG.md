@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Self-serve "La Spør AI lese nettstedet" consent + a signed read route,
+  replacing the app-password credential from TSK-19168 with Model B
+  (see nettsmed-kundestotte's 2026-07-06 design doc). New `inc/ai-read-consent.php`:
+  - A "Spør AI" page under Settings with an on/off toggle
+    (`manage_options`-gated). Shows an "ikke koblet til Min side" state and
+    disables the toggle when Min side-SSO isn't configured.
+  - Ledd 2 — toggling mints a short-lived RS256 JWT (reusing
+    `minside-sso.php`'s private-key + site_key helpers, same mint mechanics
+    as `ai-tools-token.php`, no `sub` claim) and POSTs it to minside's
+    `/api/ai/wp/consent` so `tenant_sites.ai_read_enabled` stays in sync. The
+    local `nettsmed_ai_read_enabled` option is authoritative regardless of
+    whether the ping succeeds; failures surface as an admin notice.
+  - Ledd 3 — a new `nettsmed/v1/ai/{posts,pages,post-types,post}` REST
+    namespace (GET only), gated on an EdDSA-signed bearer assertion from
+    minside verified with `sodium_crypto_sign_verify_detached` against a new
+    `NETTSMED_AI_CALLBACK_PUBKEY` contract constant (`iss`/`aud`/`exp`/`iat`/
+    `site_key` checks, ~30s clock-skew grace) plus the local consent flag.
+    Any verification failure returns a generic 403 — never leaks which check
+    failed. Responses are curated, published-only projections built from
+    native `get_posts()`/`get_post_types()`; `post?id=` status-guards against
+    guessable IDs (drafts/private answer identically to a missing ID) and
+    never exposes author/email/raw fields. (TSK-19168)
+
 ## [1.9.0] - 2026-07-05
 
 ### Added

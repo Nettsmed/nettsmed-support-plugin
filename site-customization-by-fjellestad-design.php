@@ -27,6 +27,7 @@ require plugin_dir_path(__FILE__) . 'inc/admin-dashboard-settings.php';
 require plugin_dir_path(__FILE__) . 'inc/ai-help-drawer.php';
 require plugin_dir_path(__FILE__) . 'inc/minside-sso.php';
 require plugin_dir_path(__FILE__) . 'inc/ai-tools-token.php';
+require plugin_dir_path(__FILE__) . 'inc/ai-read-consent.php';
 
 register_activation_hook( __FILE__, 'create_simpel_admin_role' );
 
