@@ -35,9 +35,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Same vendored, auto-generated contract file minside-sso.php requires — the
-// NETTSMED_AI_CALLBACK_PUBKEY define below is provisional until WP2's
-// packages/contracts render template regenerates this file with it.
+// Same vendored, auto-generated contract file minside-sso.php requires. It now
+// carries NETTSMED_AI_CALLBACK_PUBKEY, generated from packages/contracts on the
+// minside side — the single source of truth for the callback public key.
 require_once __DIR__ . '/contracts.generated.php';
 
 // ── Constants ────────────────────────────────────────────────────────────────
