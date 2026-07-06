@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-07-06
+
 ### Added
 
 - Self-serve "La Spør AI lese nettstedet" consent + a signed read route,
