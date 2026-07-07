@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-07-07
+
+### Fixed
+
+- Avoid PHP warnings when a site defines `NETTSMED_HELP_BASE` before the
+  generated contracts file is loaded.
+
 ## [1.11.0] - 2026-07-07
 
 ### Added
