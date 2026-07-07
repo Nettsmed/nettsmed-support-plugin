@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.11.2] - 2026-07-07
+
+### Fixed
+
+- Redirect failed browser-based Min side login attempts back to WordPress login
+  with a generic error message instead of showing raw REST JSON.
+
 ## [1.11.1] - 2026-07-07
 
 ### Fixed

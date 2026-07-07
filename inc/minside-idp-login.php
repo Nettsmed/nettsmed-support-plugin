@@ -36,6 +36,17 @@ function forbidden() {
 	return new \WP_Error( 'nettsmed_idp_forbidden', 'Forbidden.', array( 'status' => 403 ) );
 }
 
+function is_browser_flow( \WP_REST_Request $request ): bool {
+	return '1' === (string) $request->get_param( 'ui' );
+}
+
+function redirect_to_login_error( \WP_REST_Request $request ): void {
+	$return = safe_return_path( $request->get_param( 'return' ) );
+	$url    = add_query_arg( 'minside_idp_error', 'forbidden', wp_login_url( $return ) );
+	wp_safe_redirect( $url, 303 );
+	exit;
+}
+
 function public_key(): string {
 	if ( defined( 'MINSIDE_IDP_PUBLIC_KEY' ) && '' !== (string) \MINSIDE_IDP_PUBLIC_KEY ) {
 		return (string) \MINSIDE_IDP_PUBLIC_KEY;
@@ -159,14 +170,23 @@ function handle_login( \WP_REST_Request $request ) {
 	$assertion = (string) $request->get_param( 'assertion' );
 	$verified  = verify_assertion( $assertion );
 	if ( is_wp_error( $verified ) ) {
+		if ( is_browser_flow( $request ) ) {
+			redirect_to_login_error( $request );
+		}
 		return $verified;
 	}
 
 	$user = get_user_by( 'email', $verified['sub'] );
 	if ( ! $user instanceof \WP_User ) {
+		if ( is_browser_flow( $request ) ) {
+			redirect_to_login_error( $request );
+		}
 		return forbidden();
 	}
 	if ( user_can( $user, 'manage_options' ) ) {
+		if ( is_browser_flow( $request ) ) {
+			redirect_to_login_error( $request );
+		}
 		return forbidden();
 	}
 
@@ -196,11 +216,24 @@ function register_routes(): void {
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_text_field',
 				),
+				'ui'        => array(
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				),
 			),
 		)
 	);
 }
 add_action( 'rest_api_init', __NAMESPACE__ . '\\register_routes' );
+
+function render_login_error_message( string $message ): string {
+	if ( ! isset( $_GET['minside_idp_error'] ) || 'forbidden' !== (string) wp_unslash( $_GET['minside_idp_error'] ) ) {
+		return $message;
+	}
+	$error = '<div id="login_error">Innlogging med Min side ble avvist. Bruk vanlig WordPress-innlogging, eller prøv med en Min side-bruker som finnes i WordPress og ikke er administrator.</div>';
+	return $error . $message;
+}
+add_filter( 'login_message', __NAMESPACE__ . '\\render_login_error_message' );
 
 function login_url( string $return = '' ): string {
 	$host = (string) wp_parse_url( home_url(), PHP_URL_HOST );
