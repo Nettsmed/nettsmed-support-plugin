@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-07-07
+
+### Added
+
+- Min side as IdP for WordPress login, behind `MINSIDE_IDP_ENABLED`. Adds a
+  visible "Logg inn med Min side" button on `wp-login.php` when enabled and a
+  signed `nettsmed/v1/idp/login` REST endpoint that accepts short-lived EdDSA
+  assertions from Min side. The endpoint maps only existing WordPress users by
+  e-mail, rejects users with `manage_options`, never provisions users, and keeps
+  classic WordPress login as fallback. The public key can be set per site with
+  `MINSIDE_IDP_PUBLIC_KEY`. (TSK-19194)
+
 ## [1.10.0] - 2026-07-06
 
 ### Added
