@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-07-21
+
+### Added
+
+- IdP auto-provisioning: Min side users without an existing WordPress account
+  can now be created automatically as `simpel_admin`, behind
+  `MINSIDE_IDP_AUTOPROVISION`. Every provisioning event writes an audit row
+  (email, WordPress user ID, role claim, JWT ID, timestamp) to
+  `wp_nettsmed_idp_provision_audit`. (TSK-19399)
+
+### Changed
+
+- Min side IdP login now requires the assertion's `role` claim to be `owner`
+  or `member` — logins are rejected fail-closed for any other value,
+  including a missing claim. (TSK-19399)
+
 ## [1.11.2] - 2026-07-07
 
 ### Fixed
