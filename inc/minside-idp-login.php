@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/contracts.generated.php';
+require_once __DIR__ . '/minside-idp-decision.php';
 
 const REST_NAMESPACE = 'nettsmed/v1';
 const CALLBACK_ISS   = 'nettsmed-minside';
@@ -23,12 +24,21 @@ const CALLBACK_AUD   = 'nettsmed-wp-login';
 const CALLBACK_ALG   = 'EdDSA';
 const CALLBACK_SKEW  = 30;
 const TRANSIENT_PREFIX = 'nettsmed_idp_jti_';
+const AUDIT_TABLE     = 'nettsmed_idp_provision_audit';
 
 function enabled(): bool {
 	if ( ! defined( 'MINSIDE_IDP_ENABLED' ) ) {
 		return false;
 	}
 	$value = \MINSIDE_IDP_ENABLED;
+	return true === $value || 1 === $value || '1' === $value || 'true' === strtolower( (string) $value );
+}
+
+function autoprovision_enabled(): bool {
+	if ( ! defined( 'MINSIDE_IDP_AUTOPROVISION' ) ) {
+		return false;
+	}
+	$value = \MINSIDE_IDP_AUTOPROVISION;
 	return true === $value || 1 === $value || '1' === $value || 'true' === strtolower( (string) $value );
 }
 
@@ -91,7 +101,7 @@ function consume_jti( string $jti, int $exp ): bool {
 }
 
 /**
- * @return array{sub:string,name?:string}|\WP_Error
+ * @return array{sub:string,name?:string,role:?string,jti:string}|\WP_Error
  */
 function verify_assertion( string $jwt ) {
 	if ( ! enabled() ) {
@@ -159,11 +169,77 @@ function verify_assertion( string $jwt ) {
 		return forbidden();
 	}
 
-	$out = array( 'sub' => $sub );
+	$role = isset( $payload['role'] ) && is_string( $payload['role'] ) ? $payload['role'] : null;
+
+	$out = array(
+		'sub'  => $sub,
+		'role' => $role,
+		'jti'  => (string) $payload['jti'],
+	);
 	if ( isset( $payload['name'] ) && '' !== trim( (string) $payload['name'] ) ) {
 		$out['name'] = sanitize_text_field( (string) $payload['name'] );
 	}
 	return $out;
+}
+
+function reject_login( \WP_REST_Request $request, string $reason ) {
+	if ( class_exists( '\Sentry\SentrySdk' ) ) {
+		\Sentry\captureMessage( 'minside-idp: login rejected — ' . $reason );
+	}
+	if ( is_browser_flow( $request ) ) {
+		redirect_to_login_error( $request );
+	}
+	return forbidden();
+}
+
+function record_provision_audit( string $email, int $wp_user_id, string $role_claim, string $jti ): void {
+	global $wpdb;
+
+	$table = $wpdb->prefix . AUDIT_TABLE;
+
+	$wpdb->query(
+		"CREATE TABLE IF NOT EXISTS {$table} (
+			id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+			email VARCHAR(190) NOT NULL,
+			wp_user_id BIGINT UNSIGNED NOT NULL,
+			role_claim VARCHAR(20) NOT NULL,
+			jti VARCHAR(64) NOT NULL,
+			created_at DATETIME NOT NULL
+		) {$wpdb->get_charset_collate()}"
+	);
+
+	$wpdb->insert(
+		$table,
+		array(
+			'email'      => $email,
+			'wp_user_id' => $wp_user_id,
+			'role_claim' => $role_claim,
+			'jti'        => $jti,
+			'created_at' => current_time( 'mysql', true ),
+		),
+		array( '%s', '%d', '%s', '%s', '%s' )
+	);
+}
+
+/**
+ * @return int|\WP_Error
+ */
+function provision_user( string $email, string $role_claim, string $jti ) {
+	$user_id = wp_insert_user(
+		array(
+			'user_login' => $email,
+			'user_email' => $email,
+			'user_pass'  => wp_generate_password( 32, true, true ),
+			'role'       => 'simpel_admin',
+		)
+	);
+	if ( is_wp_error( $user_id ) ) {
+		return $user_id;
+	}
+
+	record_provision_audit( $email, (int) $user_id, $role_claim, $jti );
+
+	return (int) $user_id;
 }
 
 function handle_login( \WP_REST_Request $request ) {
@@ -176,18 +252,30 @@ function handle_login( \WP_REST_Request $request ) {
 		return $verified;
 	}
 
-	$user = get_user_by( 'email', $verified['sub'] );
-	if ( ! $user instanceof \WP_User ) {
-		if ( is_browser_flow( $request ) ) {
-			redirect_to_login_error( $request );
-		}
-		return forbidden();
+	$user          = get_user_by( 'email', $verified['sub'] );
+	$user_exists   = $user instanceof \WP_User;
+	$user_is_admin = $user_exists && user_can( $user, 'manage_options' );
+
+	$decision = \Nettsmed\MinsideIdpDecision\decide(
+		$verified['role'],
+		$user_exists,
+		$user_is_admin,
+		autoprovision_enabled()
+	);
+
+	if ( 'reject' === $decision['action'] ) {
+		return reject_login( $request, $decision['reason'] );
 	}
-	if ( user_can( $user, 'manage_options' ) ) {
-		if ( is_browser_flow( $request ) ) {
-			redirect_to_login_error( $request );
+
+	if ( 'provision' === $decision['action'] ) {
+		$user_id = provision_user( $verified['sub'], (string) $verified['role'], $verified['jti'] );
+		if ( is_wp_error( $user_id ) ) {
+			return reject_login( $request, 'provision-failed' );
 		}
-		return forbidden();
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user instanceof \WP_User ) {
+			return reject_login( $request, 'provision-failed' );
+		}
 	}
 
 	wp_set_current_user( $user->ID );
