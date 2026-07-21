@@ -208,7 +208,7 @@ function record_provision_audit( string $email, int $wp_user_id, string $role_cl
 		) {$wpdb->get_charset_collate()}"
 	);
 
-	$wpdb->insert(
+	$inserted = $wpdb->insert(
 		$table,
 		array(
 			'email'      => $email,
@@ -219,6 +219,12 @@ function record_provision_audit( string $email, int $wp_user_id, string $role_cl
 		),
 		array( '%s', '%d', '%s', '%s', '%s' )
 	);
+
+	// Innloggingen fortsetter selv om audit-raden feiler (brukeren er alt
+	// opprettet), men feilen skal aldri være stille.
+	if ( false === $inserted && class_exists( '\Sentry\SentrySdk' ) ) {
+		\Sentry\captureMessage( 'minside-idp: audit write failed (user_id=' . $wp_user_id . ')' );
+	}
 }
 
 /**
