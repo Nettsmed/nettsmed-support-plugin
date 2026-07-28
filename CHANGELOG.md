@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The `minside_sso_required_capability` filter now applies to every Min side
+  gate — admin-bar button, the Nettsmed admin menu, the landing page and the
+  admin-post launch flow — not only the SP-initiated `?minside_sso=start` path.
+  A site that opened the flow for a non-`manage_options` role (e.g. the
+  `simpel_admin` role this plugin provisions IdP users into) previously got a
+  user who could complete SSO from Min side but had no entry point from
+  wp-admin. Default is unchanged (`manage_options`), so sites without the
+  filter behave exactly as before. The SSO settings page stays on
+  `manage_options` — it is agency configuration, not a customer surface.
+
 ## [1.12.0] - 2026-07-21
 
 ### Added

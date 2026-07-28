@@ -98,6 +98,24 @@ function is_configured(): bool {
 	return '' !== get_site_key() && '' !== get_private_key_pem();
 }
 
+/**
+ * Capability som kreves for Min side-tilgang.
+ *
+ * Filteret `minside_sso_required_capability` gjaldt tidligere KUN den SP-initierte
+ * stien; admin-bar-knappen, admin-menyen og admin-post-flowen leste konstanten
+ * direkte. En site som åpnet stien for f.eks. `simpel_admin` fikk derfor en bruker
+ * som kunne fullføre SSO fra minside, men som ikke hadde noen inngang fra wp-admin.
+ * Alle gates går nå gjennom denne, slik at filteret betyr det samme overalt.
+ *
+ * Standard er uendret (`manage_options`) — sites uten filter oppfører seg som før.
+ * Innstillingssiden er bevisst IKKE med: den er byrå-konfigurasjon, ikke kundeflate.
+ */
+function required_capability(): string {
+	$cap = apply_filters( 'minside_sso_required_capability', REQUIRED_CAPABILITY );
+
+	return is_string( $cap ) && '' !== $cap ? $cap : REQUIRED_CAPABILITY;
+}
+
 // ── Admin-varsel når konstanten mangler ─────────────────────────────────────
 
 /**
@@ -288,7 +306,7 @@ function menu_icon(): string {
  * Admin-bar-node: «Åpne Min side».
  */
 function add_admin_bar_button( \WP_Admin_Bar $bar ): void {
-	if ( ! is_user_logged_in() || ! current_user_can( REQUIRED_CAPABILITY ) ) {
+	if ( ! is_user_logged_in() || ! current_user_can( required_capability() ) ) {
 		return;
 	}
 	$bar->add_node(
@@ -317,7 +335,7 @@ function register_admin_menu(): void {
 	add_menu_page(
 		__( 'Min side', 'minside-sso' ),
 		__( 'Nettsmed', 'minside-sso' ),
-		REQUIRED_CAPABILITY,
+		required_capability(),
 		'minside-nettsmed',
 		__NAMESPACE__ . '\\render_landing_page',
 		menu_icon(),
@@ -327,7 +345,7 @@ function register_admin_menu(): void {
 		'minside-nettsmed',
 		__( 'Min side', 'minside-sso' ),
 		__( 'Oversikt', 'minside-sso' ),
-		REQUIRED_CAPABILITY,
+		required_capability(),
 		'minside-nettsmed',
 		__NAMESPACE__ . '\\render_landing_page'
 	);
@@ -339,7 +357,7 @@ if ( defined( 'MINSIDE_SSO_PRIVATE_KEY' ) && '' !== (string) \MINSIDE_SSO_PRIVAT
 // ── Landingsside ─────────────────────────────────────────────────────────────
 
 function render_landing_page(): void {
-	if ( ! current_user_can( REQUIRED_CAPABILITY ) ) {
+	if ( ! current_user_can( required_capability() ) ) {
 		wp_die( esc_html__( 'Ingen tilgang.', 'minside-sso' ) );
 	}
 
@@ -393,7 +411,7 @@ function render_landing_page(): void {
  * Verifiser nonce + capability, mint token uten state (admin-post-flow), redirect.
  */
 function handle_launch(): void {
-	if ( ! is_user_logged_in() || ! current_user_can( REQUIRED_CAPABILITY ) ) {
+	if ( ! is_user_logged_in() || ! current_user_can( required_capability() ) ) {
 		wp_die( esc_html__( 'Ingen tilgang.', 'minside-sso' ), 403 );
 	}
 
@@ -444,8 +462,7 @@ function maybe_handle_sp_start(): void {
 		exit;
 	}
 
-	$cap = apply_filters( 'minside_sso_required_capability', REQUIRED_CAPABILITY );
-	if ( ! current_user_can( $cap ) ) {
+	if ( ! current_user_can( required_capability() ) ) {
 		wp_die(
 			esc_html__( 'Brukeren din har ikke tilgang til Min side. Logg inn med en administratorkonto.', 'minside-sso' ),
 			esc_html__( 'Ingen tilgang', 'minside-sso' ),
