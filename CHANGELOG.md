@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.12.1] - 2026-07-28
+
 ### Fixed
 
 - Min side SSO now works for customers: the default required capability is
