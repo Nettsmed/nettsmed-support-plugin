@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Min side SSO now works for customers: the default required capability is
+  `edit_users` instead of `manage_options`. The `simpel_admin` role this plugin
+  gives customers deliberately lacks `manage_options`, so every customer hit
+  the 403 "Logg inn med en administratorkonto" wall on `?minside_sso=start`.
+  `edit_users` covers administrator and `simpel_admin` but not
+  editor/author/subscriber, so member users on client sites are still rejected.
+  The capability remains overridable per site via the
+  `minside_sso_required_capability` filter.
+- The `minside_sso_required_capability` filter now applies to every Min side
+  gate — admin-bar button, the Nettsmed admin menu, the landing page and the
+  admin-post launch flow — not only the SP-initiated `?minside_sso=start` path.
+  Previously a role allowed through the filter could complete SSO from Min side
+  but had no entry point from wp-admin. The SSO settings page stays on
+  `manage_options` — it is agency configuration, not a customer surface.
+
 ## [1.12.0] - 2026-07-21
 
 ### Added
