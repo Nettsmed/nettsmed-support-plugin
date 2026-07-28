@@ -31,7 +31,12 @@ const SSO_ISSUER          = \NETTSMED_SSO_ISS;   // 'nettsmed-support-plugin'
 const SSO_AUD             = \NETTSMED_SSO_AUD;   // 'minside.nettsmed.no'
 const SSO_TTL_SECONDS     = \NETTSMED_SSO_TTL;   // exp = iat + 90 s
 const OPTION_SITE_KEY     = 'minside_sso_site_key';
-const REQUIRED_CAPABILITY = 'manage_options';
+// Kundeflater (SSO-start, admin-bar, meny): edit_users dekker administrator OG
+// simpel_admin (kunderollen denne pluginen provisjonerer), men IKKE editor/author/
+// subscriber — medlemsbrukere på klientsites skal aldri inn på Min side.
+const REQUIRED_CAPABILITY = 'edit_users';
+// Byrå-flater (innstillingssiden): kun ekte administratorer.
+const AGENCY_CAPABILITY   = 'manage_options';
 const ADMIN_POST_ACTION   = 'minside_sso_launch';
 const NONCE_ACTION        = 'minside_sso_launch';
 
@@ -107,7 +112,9 @@ function is_configured(): bool {
  * som kunne fullføre SSO fra minside, men som ikke hadde noen inngang fra wp-admin.
  * Alle gates går nå gjennom denne, slik at filteret betyr det samme overalt.
  *
- * Standard er uendret (`manage_options`) — sites uten filter oppfører seg som før.
+ * Standard er `edit_users`: simpel_admin (kunderollen) mangler manage_options med
+ * vilje, så manage_options-gaten avviste alle kunder. edit_users har administrator
+ * og simpel_admin, men ikke editor/author/subscriber (medlemsbrukere).
  * Innstillingssiden er bevisst IKKE med: den er byrå-konfigurasjon, ikke kundeflate.
  */
 function required_capability(): string {
@@ -508,7 +515,7 @@ function add_settings_menu(): void {
 		'minside-nettsmed',
 		__( 'Min side SSO – innstillinger', 'minside-sso' ),
 		__( 'Innstillinger', 'minside-sso' ),
-		REQUIRED_CAPABILITY,
+		AGENCY_CAPABILITY,
 		'minside-sso-settings',
 		__NAMESPACE__ . '\\render_settings_page'
 	);
@@ -519,7 +526,7 @@ if ( defined( 'MINSIDE_SSO_PRIVATE_KEY' ) && '' !== (string) \MINSIDE_SSO_PRIVAT
 }
 
 function render_settings_page(): void {
-	if ( ! current_user_can( REQUIRED_CAPABILITY ) ) {
+	if ( ! current_user_can( AGENCY_CAPABILITY ) ) {
 		wp_die( esc_html__( 'Ingen tilgang.', 'minside-sso' ) );
 	}
 
