@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- The Min side SSO 403 page no longer tells blocked users to "log in with an
+  administrator account" — `simpel_admin` customers also pass the gate, so the
+  message now points them to a site administrator instead. (TSK-19523)
+- `show_key_missing_notice()` reads the `AGENCY_CAPABILITY` constant instead of
+  hardcoding `manage_options`. No behaviour change — the constant is
+  `manage_options`. (TSK-19523)
+
 ## [1.12.1] - 2026-07-28
 
 ### Fixed
