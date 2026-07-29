@@ -130,7 +130,7 @@ function required_capability(): string {
  * SSO er deaktivert inntil konstanten finnes i wp-config.php.
  */
 function show_key_missing_notice(): void {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( AGENCY_CAPABILITY ) ) {
 		return;
 	}
 	if ( defined( 'MINSIDE_SSO_PRIVATE_KEY' ) && '' !== (string) \MINSIDE_SSO_PRIVATE_KEY ) {
@@ -471,7 +471,7 @@ function maybe_handle_sp_start(): void {
 
 	if ( ! current_user_can( required_capability() ) ) {
 		wp_die(
-			esc_html__( 'Brukeren din har ikke tilgang til Min side. Logg inn med en administratorkonto.', 'minside-sso' ),
+			esc_html__( 'Brukeren din har ikke tilgang til Min side. Kontakt en administrator på nettstedet hvis du skal ha tilgang.', 'minside-sso' ),
 			esc_html__( 'Ingen tilgang', 'minside-sso' ),
 			array( 'response' => 403 )
 		);
